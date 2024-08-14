@@ -54,3 +54,18 @@ func TestGetReposWithRequest(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateTagName(t *testing.T) {
+	tagName := "v0.0.6"
+	Convey("base case", t, func() {
+		Convey("add"+tagName, func() {
+			input := CreateTagInput{
+				TagName: tagName,
+			}
+			output, err := CreateTagName(input)
+			So(err, ShouldBeNil)
+			So(output.Author.Login, ShouldEqual, "sunzeyong")
+			So(output.TagName, ShouldEqual, tagName)
+		})
+	})
+}
