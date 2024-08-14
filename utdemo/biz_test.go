@@ -50,3 +50,23 @@ func TestHeapSort(t *testing.T) {
 		}
 	})
 }
+
+
+// 使用gomonkey打桩
+
+
+// 调用http server服务
+
+
+// mysql mock
+
+
+// redis mock
+
+
+
+// testify的其他函数如 初始化函数 销毁函数 
+
+
+// testify测试套件
+
