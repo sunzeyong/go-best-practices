@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+
+	"github.com/google/go-querystring/query"
 )
 
 // 1. resp的http状态和业务状态做统一判断
@@ -42,7 +45,17 @@ func Send[T any](req *http.Request, output T) error {
 	return nil
 }
 
-func DirectGet() {
-	
+func AddQuery[T any](path string, q T) (string, error) {
+	u, err := url.Parse(path)
+	if err != nil {
+		return "", err
+	}
 
+	queryValues, err := query.Values(q)
+	if err != nil {
+		return "", err
+	}
+
+	u.RawQuery = queryValues.Encode()
+	return u.String(), nil
 }
