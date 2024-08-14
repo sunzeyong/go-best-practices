@@ -88,3 +88,48 @@ func GetReposWithParams(p RepoParams) ([]Repo, error) {
 	}
 	return output, nil
 }
+
+func GetWithRequest(p RepoParams) ([]Repo, error) {
+	// prepare request
+	u, err := url.Parse("https://api.github.com/users/sunzeyong/repos")
+	if err != nil {
+		return nil, fmt.Errorf("%w, fail to parse url, err: %v", ErrFailSendReq, err)
+	}
+	queryValue, err := query.Values(p)
+	if err != nil {
+		return nil, fmt.Errorf("%w, fail to convert query, err:%v", ErrFailSendReq, err)
+	}
+	u.RawQuery = queryValue.Encode()
+
+	// new request and send request
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w, fail to new request, err:%v", ErrFailSendReq, err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w, fail to send request, err:%v", ErrFailSendReq, err)
+	}
+
+	// process resp
+	if resp == nil {
+		return nil, fmt.Errorf("%w, err: %v", ErrFailGetResp, "resp is nil")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w, http code is not ok, cur: %v", ErrFailGetResp, resp.StatusCode)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w, fail to read resp.Body, err: %v", ErrFailGetResp, err)
+	}
+	var output []Repo
+	err = json.Unmarshal(data, &output)
+	if err != nil {
+		return nil, fmt.Errorf("%w, fail to unmarshal, err: %w", ErrFailGetResp, err)
+	}
+	return output, nil
+}
+
+

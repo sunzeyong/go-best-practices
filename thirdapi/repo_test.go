@@ -34,3 +34,23 @@ func TestGetReposWithParams(t *testing.T) {
 		}
 	})
 }
+
+func TestGetReposWithRequest(t *testing.T) {
+	Convey("base cases", t, func() {
+		cases := []struct {
+			Name      string
+			Input     RepoParams
+			OutputLen int
+		}{
+			{"长度为1", RepoParams{PerPage: 1, Page: 1}, 1},
+			{"长度为2", RepoParams{PerPage: 2, Page: 1}, 2},
+		}
+		for _, tt := range cases {
+			Convey(tt.Name, func() {
+				output, err := GetWithRequest(tt.Input)
+				So(err, ShouldBeNil)
+				So(len(output), ShouldEqual, tt.OutputLen)
+			})
+		}
+	})
+}
