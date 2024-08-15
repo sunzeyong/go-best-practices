@@ -55,6 +55,7 @@ func GetRepos() ([]Repo, error) {
 	return output, nil
 }
 
+// GET请求后添加参数
 func GetReposWithParams(p RepoParams) ([]Repo, error) {
 	// 结构体转url.Values
 	queryValues, err := query.Values(p)
@@ -91,47 +92,26 @@ func GetReposWithParams(p RepoParams) ([]Repo, error) {
 	return output, nil
 }
 
+// GET请求使用request
 func GetWithRequest(p RepoParams) ([]Repo, error) {
 	// prepare request
 	u, err := url.Parse("https://api.github.com/users/sunzeyong/repos")
 	if err != nil {
-		return nil, fmt.Errorf("%w, fail to parse url, err: %v", ErrFailSendReq, err)
+		return nil, fmt.Errorf("fail to parse url, err: %v", err)
 	}
 	queryValue, err := query.Values(p)
 	if err != nil {
-		return nil, fmt.Errorf("%w, fail to convert query, err:%v", ErrFailSendReq, err)
+		return nil, fmt.Errorf("fail to convert query, err:%v", err)
 	}
 	u.RawQuery = queryValue.Encode()
 
 	// new request
 	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("%w, fail to new request, err:%v", ErrFailSendReq, err)
+		return nil, fmt.Errorf("fail to new request, err:%v", err)
 	}
 
-	// send request and process resp
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w, fail to send request, err:%v", ErrFailSendReq, err)
-	}
-
-	if resp == nil {
-		return nil, fmt.Errorf("%w, err: %v", ErrFailGetResp, "resp is nil")
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w, http code is not ok, cur: %v", ErrFailGetResp, resp.StatusCode)
-	}
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w, fail to read resp.Body, err: %v", ErrFailGetResp, err)
-	}
-	var output []Repo
-	err = json.Unmarshal(data, &output)
-	if err != nil {
-		return nil, fmt.Errorf("%w, fail to unmarshal, err: %w", ErrFailGetResp, err)
-	}
-	return output, nil
+	return SendV2[[]Repo](req)
 }
 
 type CreateTagInput struct {
@@ -147,6 +127,7 @@ type CreateTagOutput struct {
 	TagName string `json:"tag_name"`
 }
 
+// POST请求使用Request 另外设置header
 func CreateTagName(input CreateTagInput) (*CreateTagOutput, error) {
 	// prepare params
 	owner, repo := "sunzeyong", "go-best-practices"
@@ -154,38 +135,16 @@ func CreateTagName(input CreateTagInput) (*CreateTagOutput, error) {
 
 	inputByte, err := json.Marshal(input)
 	if err != nil {
-		return nil, fmt.Errorf("%w, fail to marshal data, err: %v", ErrFailSendReq, err)
+		return nil, fmt.Errorf("fail to marshal data, err: %v", err)
 	}
 
 	// prepare request, add header
 	req, err := http.NewRequest(http.MethodPost, path, bytes.NewReader(inputByte))
 	if err != nil {
-		return nil, fmt.Errorf("%w, fail to new request, err:%v", ErrFailSendReq, err)
+		return nil, fmt.Errorf("fail to new request, err:%v", err)
 	}
 	key := os.Getenv("GITHUBKEY")
 	req.Header.Add("Authorization", "Bearer "+key)
 
-	// send request and process resp
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w, fail to send request, err:%v", ErrFailSendReq, err)
-	}
-
-	if resp == nil {
-		return nil, fmt.Errorf("%w, err: %v", ErrFailGetResp, "resp is nil")
-	}
-	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("%w, http code is not ok, cur: %v", ErrFailGetResp, resp.StatusCode)
-	}
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w, fail to read resp.Body, err: %v", ErrFailGetResp, err)
-	}
-	output := &CreateTagOutput{}
-	err = json.Unmarshal(data, output)
-	if err != nil {
-		return nil, fmt.Errorf("%w, fail to unmarshal, err: %w", ErrFailGetResp, err)
-	}
-	return output, nil
+	return SendV2[*CreateTagOutput](req)
 }

@@ -56,7 +56,7 @@ func TestGetReposWithRequest(t *testing.T) {
 }
 
 func TestCreateTagName(t *testing.T) {
-	tagName := "v0.0.6"
+	tagName := "v0.0.9"
 	Convey("base case", t, func() {
 		Convey("add"+tagName, func() {
 			input := CreateTagInput{
