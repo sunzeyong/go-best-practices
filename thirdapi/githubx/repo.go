@@ -1,4 +1,4 @@
-package thirdapi
+package githubx
 
 import (
 	"bytes"
@@ -11,12 +11,16 @@ import (
 	"os"
 
 	"github.com/google/go-querystring/query"
+	"github.com/sunzeyong/go-best-practices/thirdapi"
 )
 
 type Repo struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-	Url  string `json:"url"`
+	Id     int    `json:"id"`
+	Name   string `json:"name"`
+	Url    string `json:"url"`
+	Author struct {
+		Login string `json:"login"`
+	} `json:"author"`
 }
 
 type RepoParams struct {
@@ -56,7 +60,7 @@ func GetRepos() ([]Repo, error) {
 }
 
 // GET请求后添加参数
-func GetReposWithParams(p RepoParams) ([]Repo, error) {
+func GetReposV2(p RepoParams) ([]Repo, error) {
 	// 结构体转url.Values
 	queryValues, err := query.Values(p)
 	if err != nil {
@@ -93,7 +97,7 @@ func GetReposWithParams(p RepoParams) ([]Repo, error) {
 }
 
 // GET请求使用request
-func GetWithRequest(p RepoParams) ([]Repo, error) {
+func GetReposV3(p RepoParams) ([]Repo, error) {
 	// prepare request
 	u, err := url.Parse("https://api.github.com/users/sunzeyong/repos")
 	if err != nil {
@@ -111,7 +115,7 @@ func GetWithRequest(p RepoParams) ([]Repo, error) {
 		return nil, fmt.Errorf("fail to new request, err:%v", err)
 	}
 
-	return SendV2[[]Repo](req)
+	return thirdapi.SendV2[[]Repo](req)
 }
 
 type CreateTagInput struct {
@@ -146,5 +150,5 @@ func CreateTagName(input CreateTagInput) (*CreateTagOutput, error) {
 	key := os.Getenv("GITHUBKEY")
 	req.Header.Add("Authorization", "Bearer "+key)
 
-	return SendV2[*CreateTagOutput](req)
+	return thirdapi.SendV2[*CreateTagOutput](req)
 }

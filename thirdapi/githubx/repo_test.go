@@ -1,4 +1,4 @@
-package thirdapi
+package githubx
 
 import (
 	"testing"
@@ -27,7 +27,7 @@ func TestGetReposWithParams(t *testing.T) {
 		}
 		for _, tt := range cases {
 			Convey(tt.Name, func() {
-				output, err := GetReposWithParams(tt.Input)
+				output, err := GetReposV2(tt.Input)
 				So(err, ShouldBeNil)
 				So(len(output), ShouldEqual, tt.OutputLen)
 			})
@@ -47,7 +47,7 @@ func TestGetReposWithRequest(t *testing.T) {
 		}
 		for _, tt := range cases {
 			Convey(tt.Name, func() {
-				output, err := GetWithRequest(tt.Input)
+				output, err := GetReposV3(tt.Input)
 				So(err, ShouldBeNil)
 				So(len(output), ShouldEqual, tt.OutputLen)
 			})
