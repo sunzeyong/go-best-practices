@@ -3,8 +3,10 @@ package utdemo
 import (
 	"testing"
 
+	"github.com/agiledragon/gomonkey/v2"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
+	"github.com/sunzeyong/go-best-practices/thirdapi/githubx"
 )
 
 // 使用testify库
@@ -51,22 +53,31 @@ func TestHeapSort(t *testing.T) {
 	})
 }
 
-
 // 使用gomonkey打桩
+func TestGetRepoAuthors(t *testing.T) {
+	Convey("base case", t, func() {
+		want := []githubx.Repo{
+			{Author: struct {
+				Login string "json:\"login\""
+			}{"author1"}},
+		}
+		patch := gomonkey.ApplyFunc(githubx.GetReposV3, func(githubx.RepoParams) ([]githubx.Repo, error) {
+			return want, nil
+		})
+		defer patch.Reset()
 
+		got, err := GetRepoAuthors()
+		So(err, ShouldBeNil)
+		So(got, ShouldContain, "author1")
+	})
+}
 
-// 调用http server服务
-
+// 调用自己的http server服务
 
 // mysql mock
 
-
 // redis mock
 
-
-
-// testify的其他函数如 初始化函数 销毁函数 
-
+// testify的其他函数如 初始化函数 销毁函数
 
 // testify测试套件
-

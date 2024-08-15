@@ -1,5 +1,7 @@
 package utdemo
 
+import "github.com/sunzeyong/go-best-practices/thirdapi/githubx"
+
 func QuickSort(input []int) {
 	recrusive(input, 0, len(input)-1)
 }
@@ -67,3 +69,25 @@ func heapify(input []int, n, i int) {
 }
 
 // 请求外部依赖 进行处理逻辑
+func GetRepoAuthors() ([]string, error) {
+	input := githubx.RepoParams{
+		PerPage: 5,
+		Page:    1,
+	}
+	output := make([]string, 0)
+
+	repos, err := githubx.GetReposV3(input)
+	if err != nil {
+		return output, err
+	}
+
+	loginSet := make(map[string]struct{})
+	for _, item := range repos {
+		loginSet[item.Author.Login] = struct{}{}
+	}
+	for k := range loginSet {
+		output = append(output, k)
+	}
+
+	return output, nil
+}
