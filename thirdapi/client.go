@@ -22,8 +22,16 @@ var (
 )
 
 func InitClient() {
+	tr := &http.Transport{
+		MaxIdleConns:        1000, // 最大空间连接总数
+		MaxIdleConnsPerHost: 10,   // 每个host最大空闲连接数，不设置有系统默认值
+		MaxConnsPerHost:     1000, // 每个host最大连接数 不设置就是不限制
+		IdleConnTimeout:     10 * time.Minute,
+		DisableKeepAlives:   false,
+	}
 	client = &http.Client{
-		Timeout: 10 * time.Second,
+		Transport: tr,
+		Timeout:   10 * time.Second,
 	}
 }
 
@@ -73,7 +81,9 @@ func SendV2[T any](req *http.Request) (T, error) {
 	if err != nil {
 		return output, fmt.Errorf("%w, fail to read resp.Body, err: %v", ErrSendReq, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+	}()
 
 	if resp.StatusCode >= http.StatusBadRequest {
 		return output, fmt.Errorf("%w, http status is abnormal, curr code: %v, body data: %v",
