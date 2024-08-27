@@ -2,6 +2,7 @@ package concurrency
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -41,6 +42,38 @@ func TestFanIn(t *testing.T) {
 	for item := range packChan {
 		fmt.Println(item)
 	}
+}
+
+func TestFanOut(t *testing.T) {
+	in := make(chan interface{})
+
+	outs := make([]chan interface{}, 5)
+	for i := range outs {
+		outs[i] = make(chan interface{})
+	}
+
+	fanOut(in, outs, false)
+
+	go func() {
+		defer close(in)
+		for i := range 3 {
+			in <- i
+		}
+	}()
+
+	var wg sync.WaitGroup
+
+	for i := range outs {
+		wg.Add(1)
+		i := i
+		go func() {
+			defer wg.Done()
+			for range outs[i] {
+				fmt.Printf("goroutine: %v recv again\n", i)
+			}
+		}()
+	}
+	wg.Wait()
 }
 
 func TestDispatchNum(t *testing.T) {

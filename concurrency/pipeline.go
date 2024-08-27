@@ -106,6 +106,32 @@ func fanIn(ins ...<-chan string) <-chan string {
 	return out
 }
 
+// 扇出模型也可以称为观察者模式
+func fanOut(in <-chan interface{}, outs []chan interface{}, async bool) {
+	go func() {
+
+		defer func() {
+			for i := range outs {
+				close(outs[i])
+			}
+		}()
+
+		for v := range in {
+			v := v
+			for i := range outs {
+				i := i
+				if async {
+					go func() {
+						outs[i] <- v
+					}()
+				} else {
+					outs[i] <- v
+				}
+			}
+		}
+	}()
+}
+
 // 更普遍的一种方式，任意的goroutine数量之间传递数据
 
 // 开一百个协程打印数字和当前的协程No
