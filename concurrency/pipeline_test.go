@@ -28,3 +28,11 @@ func TestMerge(t *testing.T) {
 		fmt.Println(item)
 	}
 }
+
+func TestDispatchNum(t *testing.T) {
+	dispatchNum()
+}
+
+func TestDispatchNum01(t *testing.T) {
+	dispatchNum01()
+}

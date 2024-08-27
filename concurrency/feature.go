@@ -6,6 +6,7 @@ import (
 )
 
 // pipeline是有前后关系，但是feature是没有前后关系，只需要等待各自做完
+// 相当于WaitGroup
 
 func vegatables() <-chan string {
 	vega := make(chan string)

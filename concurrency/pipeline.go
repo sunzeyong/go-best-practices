@@ -2,7 +2,11 @@ package concurrency
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
+	"time"
 )
 
 // Pipeline 模式也称为流水线模式，模拟的就是现实世界中的流水线生产。
@@ -70,4 +74,74 @@ func merge(ins ...<-chan string) <-chan string {
 	}()
 
 	return out
+}
+
+// 更普遍的一种方式，任意的goroutine数量之间传递数据
+
+// 开一百个协程打印数字和当前的协程No
+// 协程1打印以1结尾的数，协程2打印以2结尾的数，。。。，协程100打印100结尾的数
+// 打印出1-1000 并且按照顺序打印
+
+// sig用于终止打印
+func printWorker(i int, pre, next chan int, sig chan struct{}) {
+	for v := range pre {
+		fmt.Printf("goroutine: %v, num: %v\n", i, v)
+
+		if v == 1000 {
+			close(sig)
+		} else {
+			v++
+			next <- v
+		}
+	}
+}
+
+func dispatchNum() {
+	chs := make([]chan int, 100)
+	for i := range chs {
+		chs[i] = make(chan int)
+	}
+
+	sig := make(chan struct{})
+
+	for i := 1; i <= 100; i++ {
+		go printWorker(i, chs[i-1], chs[(i)%100], sig)
+	}
+
+	chs[0] <- 1
+
+	<-sig
+	fmt.Println("game is over")
+
+}
+
+// 若上述问题简化
+
+// 有四个 goroutine，编号为 1、2、3、4。每秒钟会有一个 goroutine 打印出它自己的编号，
+// 要求你编写一个程序，让输出的编号总是按照 1、2、3、4、1、2、3、4、……的顺序打印出来。
+
+func printWorker01(i int, pre, next chan struct{}) {
+	for {
+		token := <-pre
+		fmt.Printf("goroutine: %v\n", i+1)
+		time.Sleep(time.Second)
+		next <- token
+	}
+}
+
+func dispatchNum01() {
+	chs := make([]chan struct{}, 4)
+	for i := range chs {
+		chs[i] = make(chan struct{})
+	}
+
+	token := struct{}{}
+	for i := 0; i < 4; i++ {
+		go printWorker01(i, chs[i], chs[(i+1)%4])
+	}
+	chs[0] <- token
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	fmt.Printf("goroutine is over by %v\n", <-sig)
 }
