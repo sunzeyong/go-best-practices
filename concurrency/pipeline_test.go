@@ -14,3 +14,17 @@ func TestPipeline(t *testing.T) {
 		fmt.Println(item)
 	}
 }
+
+func TestMerge(t *testing.T) {
+	buyChan := buy(10)
+
+	build01 := build(buyChan)
+	build02 := build(buyChan)
+	mergeBuild := merge(build01, build02)
+
+	packChan := pack(mergeBuild)
+
+	for item := range packChan {
+		fmt.Println(item)
+	}
+}
