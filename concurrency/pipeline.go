@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
 	"sync"
 	"syscall"
 	"time"
@@ -49,7 +50,7 @@ func pack(in <-chan string) <-chan string {
 	return out
 }
 
-// 优化，流水线上某个操作提高处理人手，即扇入扇出模型
+// 优化，流水线上某个操作提高处理人手，即扇出扇入模型
 // 由于channel是并发安全的，所以扇出只需要将上一个channel发送给多个下一个处理工序
 // 而扇入则需要添加merge函数，将多个channel合并为一个channel
 func merge(ins ...<-chan string) <-chan string {
@@ -71,6 +72,35 @@ func merge(ins ...<-chan string) <-chan string {
 	go func() {
 		wg.Wait()
 		close(out)
+	}()
+
+	return out
+}
+
+// 扇入模型的另一种写法
+func fanIn(ins ...<-chan string) <-chan string {
+	out := make(chan string)
+
+	go func() {
+		defer close(out)
+		// 组装select cases
+		cases := make([]reflect.SelectCase, 0, len(out))
+		for _, item := range ins {
+			cases = append(cases, reflect.SelectCase{
+				Dir:  reflect.SelectRecv,
+				Chan: reflect.ValueOf(item),
+			})
+		}
+
+		// 监听cases
+		for len(cases) > 0 {
+			i, v, ok := reflect.Select(cases)
+			if !ok {
+				cases = append(cases[:i], cases[i+1:]...)
+				continue
+			}
+			out <- v.String()
+		}
 	}()
 
 	return out

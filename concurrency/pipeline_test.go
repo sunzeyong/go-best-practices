@@ -29,6 +29,20 @@ func TestMerge(t *testing.T) {
 	}
 }
 
+func TestFanIn(t *testing.T) {
+	buyChan := buy(10)
+
+	build01 := build(buyChan)
+	build02 := build(buyChan)
+	mergeBuild := fanIn(build01, build02)
+
+	packChan := pack(mergeBuild)
+
+	for item := range packChan {
+		fmt.Println(item)
+	}
+}
+
 func TestDispatchNum(t *testing.T) {
 	dispatchNum()
 }
