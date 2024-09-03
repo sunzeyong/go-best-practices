@@ -2,11 +2,23 @@ package main
 
 import (
 	"fmt"
+	"sort"
 )
 
 func main() {
-	SwitchCheckType(22)
+	sortSlice()
+}
 
+// sort slice方法 实现排序
+func sortSlice() {
+	a := []int{4, 6, 1, 3, 0, 10}
+	fmt.Println(a)
+
+	sort.Slice(a, func(i, j int) bool {
+		return a[i] < a[j]
+	})
+
+	fmt.Println(a)
 }
 
 // switch两种判断方式
