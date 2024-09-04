@@ -1,12 +1,56 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sort"
+	"sync"
+	"time"
 )
 
 func main() {
-	sortSlice()
+	emptySlice()
+}
+
+// 空slice不能直接通过index赋值
+func emptySlice() {
+	s := make([]int, 0)
+	fmt.Printf("len: %v, cap: %v", len(s), cap(s))
+	s[0] = 1
+}
+
+// cancel函数可以传递，子goroutine可以控制所有的goroutine是否退出
+func ctxUse() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func(c context.CancelFunc) {
+		defer wg.Done()
+		time.Sleep(1 * time.Second)
+		c()
+	}(cancel)
+
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("goroutine over by cancel")
+				return
+
+			default:
+				fmt.Println("go routine is running")
+				time.Sleep(time.Second / 2)
+			}
+
+		}
+	}()
+
+	wg.Wait()
+	fmt.Println("main goroutine is over")
 }
 
 // sort slice方法 实现排序
