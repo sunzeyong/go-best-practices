@@ -9,7 +9,66 @@ import (
 )
 
 func main() {
-	emptySlice()
+	twoDefer()
+}
+
+// defer 执行函数参数在定义的时候就确定了
+// 但是 执行函数内部的变量运行时才确定
+func twoDefer() {
+	first()
+	second()
+}
+
+// 直接调用fmt函数，相当于调用函数时需要传递一个参数，这个参数是在定义的时候就已经决定了
+func first() {
+	i := 1
+	// first i: 1
+	defer fmt.Printf("first i: %d\n", i)
+	i++
+}
+
+// 其实这里的defer里面是个闭包函数 运行到这个函数时，会根据函数外的这个值确定
+func second() {
+	i := 1
+	defer func() {
+		// second i: 2
+		fmt.Printf("second i: %d\n", i)
+	}()
+	i++
+}
+
+// defer的一个例子
+type Test struct {
+	Max int
+}
+
+func (t *Test) Println() {
+	fmt.Println(t.Max)
+}
+
+func deferExec(f func()) {
+	f()
+}
+
+func call() {
+	var t *Test
+	// panic 参数是先传入 执行等return
+	defer deferExec(t.Println)
+
+	t = new(Test)
+}
+
+func callV2() {
+	t := new(Test)
+	defer deferExec(t.Println)
+}
+
+// new一个slice 是否可以直接执行spend
+func newSlice() {
+	s := new([]int)
+	*s = append(*s, 10)
+	// &[10]
+	fmt.Println(s)
 }
 
 // 空slice不能直接通过index赋值
