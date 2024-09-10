@@ -9,7 +9,24 @@ import (
 )
 
 func main() {
-	mapTest()
+	testPanicDefer()
+}
+
+func testPanicDefer() {
+	// first
+	// this is a panic
+	// recover
+	// last one
+	defer fmt.Println("last one")
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("recover")
+	}()
+	defer fmt.Println("first")
+
+	panic("this is a panic")
 }
 
 // map的长度和容量
