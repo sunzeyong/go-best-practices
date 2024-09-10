@@ -9,7 +9,13 @@ import (
 )
 
 func main() {
-	twoDefer()
+	mapTest()
+}
+
+// map的长度和容量
+func mapTest() {
+	m := make(map[int]int, 10)
+	fmt.Printf("len: %d", len(m))
 }
 
 // defer 执行函数参数在定义的时候就确定了
